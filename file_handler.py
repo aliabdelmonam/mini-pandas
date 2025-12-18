@@ -37,7 +37,6 @@ class File_Handler:
         
         """
         data_dict={}
-        data_types = self.read_dtype('D:\ITI\Python for ML\Lab\mini-project\starter_code\data\titanic_dtype.csv')
 
         try:
             with open(file_path, 'r') as csv_file:
@@ -58,11 +57,11 @@ class File_Handler:
         try:
 
             for column, list_val in data_dict.items():
-                if data_types[column]=='int':
+                if dtypes[column]=='int':
                     data_dict[column] = [int(val) if val.strip() else None for val in list_val]
-                elif data_types[column]=='float':
+                elif dtypes[column]=='float':
                     data_dict[column] = [float(val) if val.strip() else None for val in list_val]
-                elif data_types[column]=='string':
+                elif dtypes[column]=='string':
                     data_dict[column] = [str(val) if val.strip() else None for val in list_val]
         except Exception as e:
             print(f"Couldn't Convert Data type: {e}")
