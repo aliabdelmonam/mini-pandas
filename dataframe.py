@@ -3,9 +3,9 @@ from stats import Stats
 from functools import reduce
 
 class Dataframe:
-    def __init__(self, data:dict, dtype:dict):
-        self.data = data
-        self.dtype = dtype
+    def __init__(self):
+        self.data = None
+        self.dtype = None
     
     def read_csv(self, data_path: str, dtype_path: str) -> None:
         """
@@ -31,84 +31,118 @@ class Dataframe:
         return dict_nulls
     
     #TODO: define describe()
-    def describe(self)->None:
+    def describe(self) -> None:
         describe_dict = {}
-        function_names = ['column','Nulls','max','min','mean','median','mode']
-        for col,data_type in self.dtype:
-            ll =[]
-            if data_type =='int':
 
-                ll.append(Stats.get_col_nulls(self.data[col]))
-                ll.append(Stats.get_col_max(self.data[col]))
-                ll.append(Stats.get_col_min(self.data[col]))
-                ll.append(Stats.get_col_mean(self.data[col]))
-                ll.append(Stats.get_col_median(self.data[col]))
-                ll.append(Stats.get_col_mode(self.data[col]))
+        for col, data_type in self.dtype.items():
+            stats = {}
 
-                describe_dict[col] = ll
+            stats["nulls"] = Stats.get_col_nulls(self.data[col])
+
+            if data_type in ("int", "float"):
+                stats["min"] = round(Stats.get_col_min(col = self.data[col]),2)
+                stats["max"] = round(Stats.get_col_max(col =self.data[col]),2)
+                stats["mean"] = round(Stats.get_col_mean(col = self.data[col]),2)
+                stats["median"] = round(Stats.get_col_median(col = self.data[col]),2)
+                stats["mode"] = round(Stats.get_col_mode(col = self.data[col]),2)
             else:
-                ll.append(Stats.get_col_nulls(self.data[col]))
-                ll.append(Stats.get_col_mode(self.data[col]))
+                stats["min"] = "_"
+                stats["max"] = "_"
+                stats["mean"] = "_"
+                stats["median"] = "_"
+                stats["mode"] = Stats.get_col_mode(col = self.data[col])
 
-                describe_dict[col] = ll
-        
-        for name in function_names:
-            print(name)
-        
-        print(f"{'Column':<15}{'Min':<10}{'Max':<10}{'Nulls':<10}")
-        print("-" * 45)
+            describe_dict[col] = stats
 
-        for col, values in self.data.items():
-            null_count = self.count_nulls()[col]
-            if self.dtype[col] in ['int', 'float']:
-                col_min = min(filter(None, values))  # Exclude None values
-                col_max = max(filter(None, values))
-            else:
-                col_min = col_max = 'N/A'
+        # ---- printing ----
+        print(f"{'Column':<15}{'Nulls':<10}{'Min':<10}{'Max':<10}{'Mean':<10}{'Median':<10}{'Mode':<10}")
+        print("-" * 75)
 
-            print(f"{col:<15}{col_min:<10}{col_max:<10}{null_count:<10}")
-        
-
+        for col, stats in describe_dict.items():
+            print(
+                f"{col:<15}"
+                f"{stats['nulls']:<10}"
+                f"{stats['min']:<10}"
+                f"{stats['max']:<10}"
+                f"{stats['mean']:<10}"
+                f"{stats['median']:<10}"
+                f"{stats['mode']:<10}"
+            )
 
     #TODO: define fillna()   
     def fillna(self, numeric_function: str = "mean", cate_function: str = "mode"):
         col_nulls = self.count_nulls()
 
-        for col, val in col_nulls.items():
-            if val > 0:  # we need to fill null here
-                t_type = self.dtype[col]
+        for col, null_count in col_nulls.items():
+            if null_count == 0:
+                continue
 
-                if t_type == 'int' or t_type == 'float':
-                    t_val = self.data[col]
-                    for i in range(len(t_val)):
-                        if t_val[i] is None:
-                            if numeric_function == 'mean':
-                                t_val[i] = Stats.get_col_mean(t_val)
-                            elif numeric_function == 'median':
-                                t_val[i] = Stats.get_col_median(t_val)
-                            elif numeric_function == 'mode':
-                                t_val[i] = Stats.get_col_mode(t_val)
-                            else:
-                                raise Exception("Filling Method Doesn't Exist")
+            col_type = self.dtype[col]
+            values = self.data[col]
 
-                elif t_type == 'str':
-                    t_val = self.data[col]
-                    for i in range(len(t_val)):
-                        if t_val[i] is None:
-                            if cate_function == 'mode':
-                                t_val[i] = Stats.get_col_mode(t_val)
-                            else:
-                                raise Exception("Filling Method Doesn't Exist")
-
+            # ---- numeric columns ----
+            if col_type in ("int", "float"):
+                if numeric_function == "mean":
+                    fill_value = Stats.get_col_mean(values)
+                elif numeric_function == "median":
+                    fill_value = Stats.get_col_median(values)
+                elif numeric_function == "mode":
+                    fill_value = Stats.get_col_mode(values)
                 else:
-                    raise Exception("Unsupported data type for fillna")
+                    raise ValueError("Numeric filling method doesn't exist")
+
+            # ---- categorical columns ----
+            elif col_type == "string":
+                if cate_function == "mode":
+                    fill_value = Stats.get_col_mode(values)
+                else:
+                    raise ValueError("Categorical filling method doesn't exist")
+
+            else:
+                raise TypeError(f"Unsupported data type: {col_type}")
+
+            # ---- fill ----
+            for i in range(len(values)):
+                if values[i] is None:
+                    values[i] = fill_value
+
 
     #TODO: define to_csv()
-        def to_csv(self) -> None:
-            File_Handler.write_file(file_path='AFFFFTER.csv',data=self.data)
+    def to_csv(self,path) -> None:
+        File_Handler.write_file(file_path=path,data=self.data)
 
 
+    def __str__(self):
+        data = self.data
+        columns = list(data.keys())
+        n_rows = len(next(iter(data.values())))
 
+        # 1) compute column widths
+        widths = {}
+        for col in columns:
+            max_width = len(col)
+            for val in data[col]:
+                max_width = max(max_width, len(str(val)))
+            widths[col] = max_width
 
+        # 2) build header
+        lines = []
+        header = ""
+        for col in columns:
+            header += col.ljust(widths[col] + 2)
+        lines.append(header.rstrip())
 
+        # 3) separator
+        sep = ""
+        for col in columns:
+            sep += "-" * widths[col] + "  "
+        lines.append(sep.rstrip())
 
+        # 4) rows
+        for i in range(n_rows):
+            row = ""
+            for col in columns:
+                row += str(data[col][i]).ljust(widths[col] + 2)
+            lines.append(row.rstrip())
+
+        return "\n".join(lines)
