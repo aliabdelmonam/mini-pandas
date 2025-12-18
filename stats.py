@@ -42,7 +42,7 @@ class Stats:
             The minimum value in the column (numeric type).
         """
         dtype = cls.get_datatype(col)
-        if dtype=='str':
+        if dtype=='string':
             raise Exception("Can't get Min of String Column")
         return reduce(lambda x, y: y if x is None else (x if y is None or x < y else y), col)
 
@@ -58,7 +58,7 @@ class Stats:
             The mean value of the column (float).
         """
         dtype = cls.get_datatype(col)
-        if dtype=='str':
+        if dtype=='string':
             raise Exception("Can't get Mean of String Column")
         
         sum  = reduce(lambda x,y:y if x is None else x if y is None else (x+y)  ,col)
@@ -78,7 +78,7 @@ class Stats:
             The median value of the column (numeric type).
         """
         dtype = cls.get_datatype(col)
-        if dtype=='str':
+        if dtype=='string':
             raise Exception("Can't get Mean of String Column")
         
         t = sorted(col, key=lambda x: (x is None, x))
@@ -132,46 +132,36 @@ class Stats:
 
         return reduce(lambda cnt,x: cnt + (1 if x is None else 0),col,0)
 
-    @classmethod  
-    def get_stat(cls, data:dict, dtypes:dict, function:str)->dict:
-        """
-        Apply a statistical function to all numerical columns in a dataset.
+    @classmethod
+    def get_stat(cls, data: dict, dtypes: dict, function: str) -> dict:
+        function = function.lower()
 
-        Args:
-            data (dict): Dictionary where keys are column names and values are lists of column values.
-            dtypes (dict): Dictionary where keys are column names and values are data types ('int', 'float', 'string').
-            function (function): A function to apply to each numerical column (e.g., get_col_max, get_col_mean).
+        valid_funcs = {"min", "max", "mean", "median", "mode"}
+        if function not in valid_funcs:
+            raise ValueError(f"Unsupported function: {function}")
 
-        Returns:
-            dict: A dictionary where keys are column names and values are the result
-            of applying the function to that column. Only numerical columns are processed.
-        """
-        func_dict = {}
-        for column,val in data.items():
-            if (dtypes[column]=='str') and (function !='mode'):
+        func_map = {
+            "min": cls.get_col_min,
+            "max": cls.get_col_max,
+            "mean": cls.get_col_mean,
+            "median": cls.get_col_median,
+            "mode": cls.get_col_mode,
+        }
+
+        result = {}
+
+        for col, values in data.items():
+            col_type = dtypes[col]
+
+            # categorical columns
+            if col_type == "str":
+                if function == "mode":
+                    result[col] = func_map[function](values)
                 continue
-            elif (dtypes[column]=='str') and (function =='mode'):
-                func_dict[column] = cls.get_col_mode(val)
-            else:
-                if function.lower() =='min':
-                    func_dict[column] = cls.get_col_min(val)
 
-                elif function.lower() =='max':
-                    func_dict[column] = cls.get_col_max(val)
+            # numeric columns
+            result[col] = func_map[function](values)
 
-                elif function.lower() =='median':
-                    func_dict[column] = cls.get_col_median(val)
-                
-                elif function.lower() =='mean':
-                    func_dict[column] = cls.get_col_mean(val)
-                
-                elif function.lower() =='mode':
-                    func_dict[column] = cls.get_col_mode(val)
-                
-        return func_dict
-                    
+        return result
 
-
-
-
-
+                        
