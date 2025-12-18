@@ -1,7 +1,8 @@
 from functools import reduce
 class Stats:
 
-    def get_datatype(self,col:list)->str:
+    @classmethod
+    def get_datatype(cls,col:list)->str:
         for item in col:
             if not item:
                 continue
@@ -14,7 +15,7 @@ class Stats:
         return None
     
     @classmethod
-    def get_col_max(cls,col:list):
+    def get_col_max(cls,col:list) ->float:
         """
         Compute the maximum value of a numerical column.
 
@@ -30,7 +31,7 @@ class Stats:
         return reduce(lambda x, y: y if x is None else (x if y is None or x > y else y), col)
     
     @classmethod
-    def get_col_min(cls,col:list):
+    def get_col_min(cls,col:list) ->float:
         """
         Compute the minimum value of a numerical column.
 
@@ -100,7 +101,7 @@ class Stats:
                 return 0.0
     
     @classmethod
-    def get_col_mode(cls,col:list):
+    def get_col_mode(cls,col:list)->float:
         """
         Compute the mode (most frequent value) of a column.
 
