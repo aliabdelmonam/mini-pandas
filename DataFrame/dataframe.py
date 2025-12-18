@@ -1,5 +1,5 @@
-from file_handler import File_Handler
-from stats import Stats
+from File_Handler import File_Handler
+from Stats import Stats
 from functools import reduce
 
 class Dataframe:

@@ -1,5 +1,6 @@
-from dataframe import Dataframe
-from stats import Stats
+from DataFrame import Dataframe
+import Stats
+
 def main():
     # TODO: Read data
 
@@ -12,11 +13,11 @@ def main():
     
     df.describe()
     # TODO: Fill missing values
-    df.fillna(numeric_function='mean',cate_function='mode')
+    # df.fillna(numeric_function='mean',cate_function='mode')
     # Numeric columns → mean
     # Categorical columns → mode
     # df.describe()
-    print(df.data)
+    # print(df.data)
 
 
     # TODO:Write cleaned data to CSV
