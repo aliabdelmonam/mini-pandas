@@ -2,7 +2,7 @@ import csv
 class File_Handler:
 
     @classmethod
-    def read_dtype(self,file_path):
+    def read_dtype(cls,file_path):
         """
         Read a CSV file containing column names and their data types.
 
@@ -23,7 +23,7 @@ class File_Handler:
         return data_types
 
     @classmethod
-    def read_csv_file(self,file_path, dtypes:dict) -> dict:
+    def read_csv_file(cls,file_path, dtypes:dict) -> dict:
         """
         Read a CSV file and convert each column to the specified data type.
 
@@ -70,7 +70,7 @@ class File_Handler:
         return data_dict  
        
     @classmethod
-    def write_file(self,file_path, data:dict) -> None:
+    def write_file(cls,file_path, data:dict) -> None:
         """
         Write a data dictionary to a CSV file.
 
