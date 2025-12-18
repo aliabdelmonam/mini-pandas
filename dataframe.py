@@ -3,11 +3,12 @@ from stats import Stats
 from functools import reduce
 
 class Dataframe:
-    def __init__(self):
-        self.data = None
-        self.dtype = None
+    def __init__(self,data:dict,dtype:dict):
+        self.data = data
+        self.dtype = dtype
     
-    def read_csv(self, data_path: str, dtype_path: str) -> None:
+    @classmethod
+    def read_csv(self, data_path: str, dtype_path: str):
         """
         Reads a CSV file and its corresponding dtype file, and initializes the Dataframe object with the data and dtype.
 
@@ -18,8 +19,10 @@ class Dataframe:
         Return:
             None
         """
-        self.dtype = File_Handler.read_dtype(dtype_path)
-        self.data = File_Handler.read_csv_file(data_path, self.dtype)
+        dtype = File_Handler.read_dtype(dtype_path)
+        data = File_Handler.read_csv_file(data_path,dtype)
+
+        return Dataframe(data = data, dtype=dtype)
     
     #TODO: define count_nulls()
     def count_nulls(self):
@@ -70,7 +73,7 @@ class Dataframe:
             )
 
     #TODO: define fillna()   
-    def fillna(self, numeric_function: str = "mean", cate_function: str = "mode"):
+    def fillna(self, numeric_function: str = "mean", cate_function: str = "mode") ->None:
         col_nulls = self.count_nulls()
 
         for col, null_count in col_nulls.items():
