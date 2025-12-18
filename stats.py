@@ -126,6 +126,11 @@ class Stats:
 
         return t[0][0]
 
+    @classmethod
+    def get_col_nulls(cls,col:list)->int:
+
+        return reduce(lambda cnt,x: cnt + (1 if x is None else 0),col,0)
+
     @classmethod  
     def get_stat(cls, data:dict, dtypes:dict, function:str)->dict:
         """
